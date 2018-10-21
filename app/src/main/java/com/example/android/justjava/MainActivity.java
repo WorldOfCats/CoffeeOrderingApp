@@ -1,0 +1,171 @@
+/*
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.example.android.justjava;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.AlarmClock;
+
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.text.NumberFormat;
+
+import static android.R.attr.duration;
+import static android.R.attr.name;
+import static android.R.attr.order;
+import static android.R.drawable.edit_text;
+import static android.R.id.message;
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
+
+/**
+ * This app displays an order form to order coffee.
+ */
+public class MainActivity extends AppCompatActivity {
+
+    // Number of cups of coffee ordered
+    int quantity = 2;
+
+    boolean hasCream = false;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+    }
+
+    /**
+     * This method is called when the plus button is clicked.
+     */
+    public void increment(View view) {
+
+        if (quantity==100){
+
+            Toast.makeText(this, "Can not be more than 100", Toast.LENGTH_SHORT).show();
+            return;
+
+        }
+
+
+        quantity = quantity + 1;
+        displayQuantity(quantity);
+    }
+
+    /**
+     * This method is called when the minus button is clicked.
+     */
+    public void decrement(View view) {
+
+        if (quantity<2){
+
+            Toast.makeText(this, "Can not be negative", Toast.LENGTH_SHORT).show();
+            return;
+
+        }
+
+        quantity = quantity - 1;
+        displayQuantity(quantity);
+    }
+
+    /**
+     * This method is called when the order button is clicked.
+     */
+    public void submitOrder(View view) {
+        CheckBox whippedCreamCheckbox = (CheckBox) findViewById(R.id.creamCheckBox);
+        boolean hasWhippedCream = whippedCreamCheckbox.isChecked();
+
+        CheckBox chocolateCheckbox = (CheckBox) findViewById(R.id.chocolateCheckBox);
+        boolean hasChocolate = chocolateCheckbox.isChecked();
+
+        EditText clinetName = (EditText) findViewById(R.id.custName);
+        String nameInput = clinetName.getText().toString();
+
+        int price = calculatePrice( hasWhippedCream, hasChocolate);
+        String priceMessage = createOrderSummary(price, hasWhippedCream, hasChocolate, nameInput);
+
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Coffe order to" + name );
+        intent.putExtra(Intent.EXTRA_TEXT, priceMessage );
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
+
+//        displayMessage(priceMessage);
+
+
+    }
+    /**
+     * Calculates the price of the order.
+     *
+
+     */
+    private int calculatePrice( boolean addWhippedCream, boolean addChocolate) {
+       int basePrice = 5;
+
+        if (addWhippedCream){
+            basePrice = basePrice + 1;
+        }
+
+        if (addChocolate){
+            basePrice = basePrice + 2;
+        }
+
+        return quantity * basePrice;
+    }
+    /**
+     * Creaates summary of the order.
+     * @pram price of the order
+     * @return text summory
+     */
+    private String createOrderSummary (int price, boolean addWCream, boolean addChocolate, String custName){
+        String priceMessage = "Name " + custName ; ;
+
+        priceMessage +=  "\nWhipped cream? " + addWCream ;
+        priceMessage +=  "\nWhipped cocolate? " + addChocolate ;
+        priceMessage +=  "\nQuantity: " + quantity ;
+        priceMessage +=  "\nTotal: $" + price ;
+        priceMessage +=  "\nThank you!";
+        return  priceMessage;
+    }
+
+    /**
+     * This method displays the given quantity value on the screen.
+     */
+    private void displayQuantity(int numberImportant) {
+        TextView quantityTextView = (TextView) findViewById(
+                R.id.quantity_text_view);
+        quantityTextView.setText("" + numberImportant);
+    }
+
+    /**
+     * This method displays the given text on the screen.
+     */
+//    private void displayMessage(String message) {
+//        TextView orderSummaryTextView = (TextView) findViewById(R.id.order_summary_text_view);
+//        orderSummaryTextView.setText(message);
+//    }
+//
+
+
+}
+
